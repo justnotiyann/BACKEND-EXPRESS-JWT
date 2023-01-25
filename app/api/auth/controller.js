@@ -1,4 +1,4 @@
-const bcryptjs = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../model/Users");
 require("dotenv").config();
@@ -17,7 +17,7 @@ exports.register = async (req, res, next) => {
     }
 
     // Encrypt password
-    const hashPass = await bcryptjs(password, 10);
+    const hashPass = await bcrypt.hash(password, 10);
 
     // create user
     const result = new User({
@@ -25,7 +25,7 @@ exports.register = async (req, res, next) => {
       last_name,
       email,
       password: hashPass,
-    });
+    }).save();
 
     // create token
     const token = jwt.sign(
@@ -35,12 +35,13 @@ exports.register = async (req, res, next) => {
         expiresIn: "2h",
       }
     );
+
     result.token = token;
 
     res.status(200).json({
       status: 200,
       message: "user Created",
-      result,
+      data: result,
     });
   } catch (error) {
     console.log(error);
@@ -48,6 +49,44 @@ exports.register = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
+  const { email, password } = req.body;
   try {
-  } catch (error) {}
+    if (!(email && password)) {
+      res.status(400).json({ message: "All input required" });
+    }
+
+    // check user
+    const result = await User.findOne({ email });
+    if (result && (await bcrypt.compare(password, result.password))) {
+      // create token
+      const token = jwt.sign(
+        { user_id: result._id, email },
+        process.env.TOKEN_KEY,
+        {
+          expiresIn: "2h",
+        }
+      );
+      result.token = token;
+
+      res.status(200).json({
+        status: 200,
+        message: "Welcome 😎",
+        token,
+      });
+    } else {
+      res.status(400).json({ msg: "Invalid Credentials" });
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.dashboard = async (req, res, next) => {
+  try {
+    const result = await User.find();
+    res.status(200).json({
+      status: 200,
+      data: result,
+    });
+  } catch (e) {}
 };
