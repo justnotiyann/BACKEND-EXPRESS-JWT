@@ -14,12 +14,13 @@ exports.isAuth = (req, res, next) => {
   try {
     const decode = jwt.decode(token, TOKEN_KEY);
     req.user = decode;
+    if (!req.user.isLogin) {
+      res.status(403).json({ status: 400, message: "Login First" });
+    }
   } catch (e) {
     res.status(400).json({
       status: 400,
       message: "Invalid Token",
     });
   }
-
-  return next();
 };

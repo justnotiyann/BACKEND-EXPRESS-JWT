@@ -25,24 +25,28 @@ exports.register = async (req, res, next) => {
       last_name,
       email,
       password: hashPass,
-    }).save();
+    });
+    result.save();
 
     // create token
     const token = jwt.sign(
-      { user_id: result._id, email },
+      {
+        email: email,
+        role: result.role,
+        isLogin: true,
+      },
       process.env.TOKEN_KEY,
       {
-        expiresIn: "2h",
+        expiresIn: "1h",
       }
     );
-
     result.token = token;
 
-    res.status(200).json({
-      status: 200,
-      message: "user Created",
-      data: result,
-    });
+    if (!result) {
+      res.status(500).json({ status: 500, message: "Failed to register" });
+    }
+
+    res.status(200).json({ status: 200, message: "Success !", data: result });
   } catch (error) {
     console.log(error);
   }
@@ -76,6 +80,9 @@ exports.login = async (req, res, next) => {
     } else {
       res.status(400).json({ msg: "Invalid Credentials" });
     }
+    if (!result) {
+      res.status(500).json({ status: 500, message: "Failed to register" });
+    }
   } catch (e) {
     console.log(e);
   }
@@ -88,5 +95,8 @@ exports.dashboard = async (req, res, next) => {
       status: 200,
       data: result,
     });
+    if (!result) {
+      res.status(500).json({ status: 500, message: "Failed to register" });
+    }
   } catch (e) {}
 };
