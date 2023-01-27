@@ -16,6 +16,10 @@ exports.isAuth = (req, res, next) => {
         res.status(404).json({ status: 404, message: "Token not valid!" });
       }
       req.user = decode;
+
+      if (req.user.role !== "admin") {
+        res.status(403).json({ status: 403, message: "Admin Only !" });
+      }
       next();
     } catch (e) {
       res.status(400).json({
