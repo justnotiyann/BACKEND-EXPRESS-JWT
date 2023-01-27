@@ -90,7 +90,7 @@ exports.login = async (req, res, next) => {
 
 exports.dashboard = async (req, res, next) => {
   try {
-    const result = await User.find();
+    const result = await User.find({}).select("-password");
     res.status(200).json({
       status: 200,
       data: result,
