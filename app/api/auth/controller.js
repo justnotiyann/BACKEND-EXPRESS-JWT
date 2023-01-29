@@ -4,9 +4,9 @@ const { User } = require("../../model");
 require("dotenv").config();
 
 exports.register = async (req, res, next) => {
-  const { first_name, last_name, email, password } = req.body;
+  const { fname, lname, email, password } = req.body;
   try {
-    if (!(first_name, last_name, email, password)) {
+    if (!(fname, lname, email, password)) {
       res.status(400).json({ msg: "All input is required" });
     }
 
@@ -21,8 +21,8 @@ exports.register = async (req, res, next) => {
 
     // create user
     const result = new User({
-      first_name,
-      last_name,
+      fname,
+      lname,
       email,
       password: hashPass,
     });
@@ -31,7 +31,9 @@ exports.register = async (req, res, next) => {
     // create token
     const token = jwt.sign(
       {
-        email: email,
+        fname,
+        lname,
+        email,
         role: result.role,
         isLogin: true,
       },
@@ -64,7 +66,7 @@ exports.login = async (req, res, next) => {
     if (result && (await bcrypt.compare(password, result.password))) {
       // create token
       const token = jwt.sign(
-        { user_id: result._id, email },
+        { fname, lname, email, role: result.role, isLogin: true },
         process.env.TOKEN_KEY,
         {
           expiresIn: "2h",
